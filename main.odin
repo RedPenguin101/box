@@ -34,10 +34,10 @@ main :: proc() {
     shadow_box :: rl.Rectangle{margin, margin, box_size, box_size}
 
     sides := [4]rl.Rectangle{
-        rl.Rectangle{margin, margin, line_length, line_width},
-        rl.Rectangle{other_margin, margin, line_width, line_length},
-        rl.Rectangle{margin+line_width, other_margin, line_length, line_width},
-        rl.Rectangle{margin, margin+line_width, line_width, line_length},
+        rl.Rectangle{margin+line_width, margin, line_length, line_width},
+        rl.Rectangle{other_margin, margin+line_width, line_width, line_length},
+        rl.Rectangle{margin, other_margin, line_length, line_width},
+        rl.Rectangle{margin, margin, line_width, line_length},
     }
 
     partial_side : rl.Rectangle
@@ -57,11 +57,11 @@ main :: proc() {
         case 1: partial_side.height *= current_progress
         case 2: {
             partial_side.width *= current_progress
-            partial_side.x = other_margin - partial_side.width + line_width
+            partial_side.x = other_margin - partial_side.width
         }
         case 3: {
             partial_side.height *= current_progress
-            partial_side.y = other_margin - partial_side.height + line_width
+            partial_side.y = other_margin - partial_side.height
         }
         }
 
