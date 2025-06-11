@@ -17,24 +17,19 @@ main :: proc() {
 
     FPS :: 60
 
-    screen :: 200
-    margin :: 20
-    line_width :: 5
-    c_radius :: line_width / 2
-    line_length :: screen-2*margin-line_width
-    other_margin :: screen-margin-line_width
-    box_size :: screen-2*margin
+    screen       :: 200
+    margin       :: 20
+    line_width   :: 5
+    line_length  :: screen - 2*margin - line_width
+    other_margin :: screen -   margin - line_width
+    box_size     :: screen - 2*margin
 
-    current_side := 0
-    current_progress :f32 = 0.0
-    overall_progress := 0.0
+    current_side      :int
+    current_progress  :f32
+    current_increment :: 0.25/FPS
 
+    overall_progress  :f64
     overall_increment := 1.0/(60*minutes*FPS)
-
-    main_color := rl.WHITE
-    faded := rl.Color{100,100,100,255}
-    overlay := rl.BLACK
-    overlay.a = 0
 
     shadow_box :: rl.Rectangle{margin, margin, box_size, box_size}
 
@@ -45,42 +40,49 @@ main :: proc() {
         rl.Rectangle{margin, margin+line_width, line_width, line_length},
     }
 
+    partial_side : rl.Rectangle
+
+    main_color   :: rl.Color{255,255,255,255}
+    shadow_color :: rl.Color{100,100,100,255}
+    overlay_tint := rl.Color{0,0,0,0}
+
     rl.InitWindow(screen,screen,"Box")
-    rl.SetTargetFPS(60)
+    rl.SetTargetFPS(FPS)
 
     for !rl.WindowShouldClose() && overall_progress < 1 {
-        this := sides[current_side]
+        partial_side = sides[current_side]
 
         switch current_side {
-        case 0: this.width *= current_progress
-        case 1: this.height *= current_progress
+        case 0: partial_side.width *= current_progress
+        case 1: partial_side.height *= current_progress
         case 2: {
-            this.width *= min(current_progress, 1)
-            this.x = other_margin - this.width + line_width
+            partial_side.width *= current_progress
+            partial_side.x = other_margin - partial_side.width + line_width
         }
         case 3: {
-            this.height *= current_progress
-            this.y = other_margin - this.height + line_width
+            partial_side.height *= current_progress
+            partial_side.y = other_margin - partial_side.height + line_width
         }
         }
 
         rl.BeginDrawing()
         rl.ClearBackground(rl.BLACK)
-        rl.DrawRectangleLinesEx(shadow_box, line_width, faded)
+        rl.DrawRectangleLinesEx(shadow_box, line_width, shadow_color)
         for side in 0..<current_side do rl.DrawRectangleRec(sides[side], main_color)
-        rl.DrawRectangleRec(this, main_color)
-        rl.DrawRectangle(0,0,screen,screen,overlay)
+        rl.DrawRectangleRec(partial_side, main_color)
+        rl.DrawRectangle(0,0,screen,screen,overlay_tint)
         rl.EndDrawing()
 
-        current_progress += 0.25/FPS
-        overlay.a = u8(200.0*overall_progress)
-        overall_progress += overall_increment
+        current_progress += current_increment
 
         if current_progress > 1 {
             current_progress = 0
             current_side += 1
+            current_side %= 4
         }
-        current_side %= 4
+
+        overlay_tint.a = u8(200.0*overall_progress)
+        overall_progress += overall_increment
     }
 
     rl.CloseWindow()
